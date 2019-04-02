@@ -5,8 +5,8 @@
 %%form       : "(" (%%if | %%define | %%require | %%provide) ")"
 %%if         : "if" %%block %%block?
 %%define     : "define" IDENTIFIER %%block
-%%require    : "require" %%sexp+
-%%provide    : "provide" %%sexp+
+%%require    : "require" (IDENTIFIER | STRING)+
+%%provide    : "provide" (IDENTIFIER | STRING)+
 %%block      : "[" %%expression* "]"
 %%word       : IDENTIFIER
 %%datum      : STRING | NUMBER | TRUE | FALSE | "'" %%sexp
