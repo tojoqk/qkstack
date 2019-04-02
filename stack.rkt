@@ -15,4 +15,14 @@
   (set! stack (cons value stack)))
 (provide push!)
 
+(define-syntax-rule (push-list! stack lst)
+  (set! stack (append lst stack)))
+(provide push-list!)
 
+(define (list->stack lst)
+  lst)
+(provide list->stack)
+
+(define (stack->list stack)
+  stack)
+(provide stack->list)

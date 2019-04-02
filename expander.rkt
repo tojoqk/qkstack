@@ -41,6 +41,7 @@
                          (not (or (require? expr)
                                   (define? expr))))
                        exprs))))))
+
 (define-syntax (%%qkstack stx)
   (syntax-case stx ()
     [(_ expression ...)
@@ -57,6 +58,7 @@
            #,@(sort-expressions #'(expression ...))
            (current-operator-stack)))]))
 (provide %%block)
+
 (define-syntax %%expression
   (syntax-rules (%%block)
     [(_ (%%block body ...))
@@ -88,8 +90,10 @@
 
 (define-syntax-rule (%%define "define" name block)
   (define name
-    (lambda (data-stack op-stack)
-      (values data-stack (block op-stack)))))
+    (let ([op-list (stack->list (block (make-stack)))])
+      (lambda (data-stack op-stack)
+        (push-list! op-stack op-list)
+        (values data-stack op-stack)))))
 (provide %%define)
 
 (begin-for-syntax
