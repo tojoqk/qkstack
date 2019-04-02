@@ -7,28 +7,36 @@
    tree))
 (provide (rename-out [qkstack-module-begin #%module-begin]))
 
-(define current-operators (make-parameter '()))
+(define current-operator-stack (make-parameter (make-stack)))
+(define (push-operator! op)
+  (let ([op-stack (current-operator-stack)])
+    (push! op-stack op)
+    (current-operator-stack op-stack)))
 
-(define (push-operator! operator)
-  (current-operators
-   (cons operator (current-operators))))
+(define (run-operator-stack op-stack)
+  (let run ([data-stack (make-stack)]
+            [op-stack op-stack])
+    (if (stack-empty? op-stack)
+        data-stack
+        (let ([op (pop! op-stack)])
+          (let-values ([(data-stack op-stack) (op data-stack op-stack)])
+            (run data-stack op-stack))))))
 
-(define (eval-current-operators stack)
-  (for/fold ([stack stack])
-            ([operator (reverse (current-operators))])
-    (operator stack)))
-
-(define-syntax-rule (%%qkstack expression ...)
-  (begin
-    expression ...
-    (eval-current-operators (make-stack))))
+(define-syntax (%%qkstack stx)
+  (syntax-case stx ()
+    [(_ expression ...)
+     (with-syntax ([(rev-expr ...)
+                    (reverse (syntax->list #'(expression ...)))])
+       #'(begin
+           rev-expr ...
+           (run-operator-stack (current-operator-stack))))]))
 (provide %%qkstack)
 
 (define-syntax %%expression
   (syntax-rules (%%block)
     [(_ (%%block body ...))
-     (push-operator!
-      (%%block body ...))]
+     (current-operator-stack
+      ((%%block body ...) (current-operator-stack)))]
     [(_ expression)
      expression]))
 (provide %%expression)
@@ -41,27 +49,33 @@
   (syntax-rules ()
     [(_ "if" block)
      (push-operator!
-      (lambda (stack)
-        (if (pop! stack)
-            (block stack)
-            stack)))]
+      (lambda (data-stack op-stack)
+        (if (pop! data-stack)
+            (values data-stack (block op-stack))
+            (values data-stack op-stack))))]
     [(_ "if" then-block else-block)
      (push-operator!
-      (lambda (stack)
-        (if (pop! stack)
-            (then-block stack)
-            (else-block stack))))]))
+      (lambda (data-stack op-stack)
+        (if (pop! data-stack)
+            (values data-stack (then-block op-stack))
+            (values data-stack (else-block op-stack)))))]))
 (provide %%if)
 
 (define-syntax-rule (%%define "define" name block)
-  (define name block))
+  (define name
+    (lambda (data-stack op-stack)
+      (values data-stack (block op-stack)))))
 (provide %%define)
 
-(define-syntax-rule (%%block "[" expression ... "]")
-  (lambda (stack)
-    (parameterize ([current-operators '()])
-      expression ...
-      (eval-current-operators stack))))
+(define-syntax (%%block stx)
+  (syntax-case stx ()
+    [(_ "[" expression ... "]")
+     (with-syntax ([(rev-expr ...)
+                    (reverse (syntax->list #'(expression ...)))])
+       #'(lambda (op-stack)
+           (parameterize ([current-operator-stack op-stack])
+             rev-expr ...
+             (current-operator-stack))))]))
 (provide %%block)
 
 (begin-for-syntax
@@ -94,9 +108,9 @@
   (syntax-rules ()
     [(_ datum)
      (push-operator!
-      (lambda (stack)
-        (push! stack datum)
-        stack))]
+      (lambda (data-stack op-stack)
+        (push! data-stack datum)
+        (values data-stack op-stack)))]
     [(_ "'" sexp)
      (%%datum sexp)]))
 (provide %%datum)
