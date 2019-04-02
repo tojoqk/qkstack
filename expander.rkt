@@ -22,16 +22,41 @@
           (let-values ([(data-stack op-stack) (op data-stack op-stack)])
             (run data-stack op-stack))))))
 
+(begin-for-syntax
+  (define (sort-expressions stx)
+    (define (require? expr)
+      (eq? '%%require (car (syntax->datum expr)))
+      (syntax-case expr (%%expression %%form %%require)
+        [(%%expression (%%form "(" (%%require _ ...) ")")) #t]
+        [_ #f]))
+    (define (define? expr)
+      (syntax-case expr (%%expression %%form %%define)
+        [(%%expression (%%form "(" (%%define _ ...) ")")) #t]
+        [_ #f]))
+    (let ([exprs (syntax->list stx)])
+      (append (filter require? exprs)
+              (filter define? exprs)
+              (reverse
+               (filter (lambda (expr)
+                         (not (or (require? expr)
+                                  (define? expr))))
+                       exprs))))))
 (define-syntax (%%qkstack stx)
   (syntax-case stx ()
     [(_ expression ...)
-     (with-syntax ([(rev-expr ...)
-                    (reverse (syntax->list #'(expression ...)))])
-       #'(begin
-           rev-expr ...
-           (run-operator-stack (current-operator-stack))))]))
+     #`(begin
+         #,@(sort-expressions #'(expression ...))
+         (run-operator-stack (current-operator-stack)))]))
 (provide %%qkstack)
 
+(define-syntax (%%block stx)
+  (syntax-case stx ()
+    [(_ "[" expression ... "]")
+     #`(lambda (op-stack)
+         (parameterize ([current-operator-stack op-stack])
+           #,@(sort-expressions #'(expression ...))
+           (current-operator-stack)))]))
+(provide %%block)
 (define-syntax %%expression
   (syntax-rules (%%block)
     [(_ (%%block body ...))
@@ -66,17 +91,6 @@
     (lambda (data-stack op-stack)
       (values data-stack (block op-stack)))))
 (provide %%define)
-
-(define-syntax (%%block stx)
-  (syntax-case stx ()
-    [(_ "[" expression ... "]")
-     (with-syntax ([(rev-expr ...)
-                    (reverse (syntax->list #'(expression ...)))])
-       #'(lambda (op-stack)
-           (parameterize ([current-operator-stack op-stack])
-             rev-expr ...
-             (current-operator-stack))))]))
-(provide %%block)
 
 (begin-for-syntax
   (define (strip-%%sexp sexp)
