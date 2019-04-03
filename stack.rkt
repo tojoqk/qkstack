@@ -1,4 +1,5 @@
 #lang racket
+(require (only-in srfi/1 append-reverse))
 
 (define (make-stack) '())
 (provide make-stack)
@@ -16,13 +17,13 @@
 (provide push!)
 
 (define-syntax-rule (push-list! stack lst)
-  (set! stack (append lst stack)))
+  (set! stack (append-reverse lst stack)))
 (provide push-list!)
 
 (define (list->stack lst)
-  lst)
+  (reverse lst))
 (provide list->stack)
 
 (define (stack->list stack)
-  stack)
+  (reverse stack))
 (provide stack->list)
