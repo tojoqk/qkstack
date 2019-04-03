@@ -9,13 +9,13 @@
                     (generate-temporaries
                      (make-list (syntax->datum #'n) #t))]
                    [(reversed-arg ...) (reverse (syntax->list #'(arg ...)))])
-       #'(define (name data-stack op-stack)
+       #'(define (name stack)
            (define-values (value ...)
-             (let* ([reversed-arg (pop! data-stack)]
+             (let* ([reversed-arg (pop! stack)]
                     ...)
                body body* ...))
-           (push! data-stack value) ...
-           (values data-stack op-stack)))]
+           (push! stack value) ...
+           stack))]
     [(_ (name arg ...) body body* ...)
      #'(define/qkstack (name arg ... -> 1) body body* ...)]))
 (provide define/qkstack)
