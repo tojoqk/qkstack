@@ -42,6 +42,7 @@
                  [add1 (1 -> 1)]
                  [display (1 -> 1)]
                  [displayln (1 -> 1)]
+                 [write (1 -> 1)]
                  [car (1 -> 1)]
                  [cdr (1 -> 1)]
                  [cons (2 -> 1)]
