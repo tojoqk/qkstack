@@ -7,6 +7,7 @@
   (define qkstack-lexer
     (lexer-src-pos
      [whitespace (token lexeme #:skip? #t)]
+     [(from/to ";" "\n") (token 'COMMENT #:skip? #t)]
      [(:or "(" ")" "'" ",") (token lexeme lexeme)]
      ["[" (token "(" "(")]
      ["]" (token ")" ")")]
