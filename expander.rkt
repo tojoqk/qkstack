@@ -104,8 +104,8 @@
   (require id-or-string ...))
 (provide %%require)
 
-(define-syntax-rule (%%provide "(" "provide" id-or-string ... ")")
-  (provide id-or-string ...))
+(define-syntax-rule (%%provide "(" "provide" id ... ")")
+  (provide id ...))
 (provide %%provide)
 
 (define-syntax %%datum
