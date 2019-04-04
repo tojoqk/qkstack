@@ -4,7 +4,7 @@
 %%top-level-form : %%define | %%require | %%provide
 %%define         : "(" "define" IDENTIFIER %%expression* ")"
 %%require        : "(" "require" (IDENTIFIER | STRING)+ ")"
-%%provide        : "(" "provide" (IDENTIFIER | STRING)+ ")"
+%%provide        : "(" "provide" IDENTIFIER+ ")"
 %%expression     : %%if | %%let | %%named-let | %%let-cc
                  | %%quote | %%word | %%datum
 %%if             : "(" "if" %%then %%else? ")"
