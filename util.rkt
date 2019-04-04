@@ -25,8 +25,7 @@
 (define-syntax (provide/qkstack-1 stx)
   (syntax-case stx (->)
     [(_ name (m -> n))
-     (with-syntax ([(gname) (generate-temporaries #'(name))]
-                   [(arg ...) (generate-temporaries (make-list (syntax->datum #'m) #t))])
+     (with-syntax ([(arg ...) (generate-temporaries (make-list (syntax->datum #'m) #t))])
        #'(begin
            (define/qkstack (gname arg ... -> n)
              (name arg ...))
