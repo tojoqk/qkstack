@@ -26,7 +26,10 @@
     [(_ expression ...)
      #`(begin
          #,@(filter top-level-form? (syntax->list stx))
-         #,(qkstack->racket #'(expression ...) #'(make-stack)))]))
+         (module+ main
+           (current-print (lambda (_) (void)))
+           #,(qkstack->racket #'(expression ...)
+                              #'(make-stack))))]))
 (provide %%qkstack)
 
 (define-syntax (block stx)
