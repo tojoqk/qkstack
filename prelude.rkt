@@ -26,6 +26,11 @@
 (define/qkstack (tuck a b -> 3) (values b a b))
 (provide tuck)
 
+(define (dump stack)
+  (push! stack stack)
+  stack)
+(provide dump)
+
 (provide/qkstack [+ (2 -> 1)]
                  [- (2 -> 1)]
                  [* (2 -> 1)]
@@ -40,9 +45,9 @@
                  [zero? (1 -> 1)]
                  [sub1 (1 -> 1)]
                  [add1 (1 -> 1)]
-                 [display (1 -> 1)]
-                 [displayln (1 -> 1)]
-                 [write (1 -> 1)]
+                 [display (1 -> 0)]
+                 [displayln (1 -> 0)]
+                 [write (1 -> 0)]
                  [car (1 -> 1)]
                  [cdr (1 -> 1)]
                  [cons (2 -> 1)]
