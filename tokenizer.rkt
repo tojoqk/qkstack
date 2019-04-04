@@ -8,7 +8,7 @@
     (lexer-src-pos
      [whitespace (token lexeme #:skip? #t)]
      [(:or "(" ")" "'" "[" "]") (token lexeme lexeme)]
-     [(:or "if" "define" "require" "provide")
+     [(:or "if" "define" "let" "let/cc" "require" "provide")
       (token lexeme lexeme)]
      [(:+ (char-set "0123456789"))
       (token 'NUMBER (string->number lexeme))]

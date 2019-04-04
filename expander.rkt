@@ -58,13 +58,8 @@
          #,(apply-expressions #'(expression ...) #'stack))]))
 (provide %%block)
 
-(define-syntax %%expression
-  (syntax-rules (%%block)
-    [(_ (%%block body ...))
-     (current-operator-stack
-      ((%%block body ...) (current-operator-stack)))]
-    [(_ expression)
-     expression]))
+(define-syntax-rule (%%expression expression)
+  expression)
 (provide %%expression)
 
 (define-syntax-rule (%%form "(" form ")")
@@ -88,6 +83,33 @@
 (define-syntax-rule (%%define "define" name block)
   (define name block))
 (provide %%define)
+
+(define-syntax (%%let stx)
+  (syntax-case stx (%%biding)
+    [(_ "let" "(" (%%binding _ arg val _) ... ")" block)
+     #`(lambda (stack)
+         (let ([arg val] ...)
+           (block stack)))]))
+(provide %%let)
+
+(define-syntax (%%named-let stx)
+  (syntax-case stx (%%binding)
+    [(_ "let" name "(" (%%binding _ arg val _) ... ")" block)
+     #`(lambda (stack)
+         (define (name stack)
+           (let ([arg val] ...)
+             (block stack)))
+         (name stack))]))
+(provide %%named-let)
+
+(define-syntax-rule (%%let-cc "let/cc" name block)
+  (lambda (stack)
+    (let/cc k
+      (define (name stack2)
+        (push! stack (pop! stack2))
+        (k stack))
+      (block stack))))
+(provide %%let-cc)
 
 (begin-for-syntax
   (define (strip-%%sexp sexp)
