@@ -1,9 +1,17 @@
 #lang brag
 
-%%qkstack      : %%block*
-%%block        : %%if-block | %%define-block | (%%operator | %%datum)+
-%%if-block     : IF-BEGIN %%block* (END | IF-ELSE %%block* END)
-%%define-block : DEFINE-BEGIN IDENTIFIER BEGIN %%block* END
-%%operator     : IDENTIFIER
-%%datum        : STRING | NUMBER | QUOTE %%sexp
-%%sexp         : QUOTE %%sexp | STRING | NUMBER | IDENTIFIER | LEFT-PARENCE %%sexp RIGHT-PARENCE
+%%qkstack    : %%expression*
+%%expression : (%%form | %%word | %%datum | %%block)
+%%form       : "(" (%%if | %%define | %%require | %%provide | %%let | %%named-let | %%let-cc) ")"
+%%if         : "if" %%block %%block?
+%%define     : "define" IDENTIFIER %%block
+%%let        : "let" "(" %%binding* ")" %%block
+%%named-let  : "let" IDENTIFIER "(" %%binding* ")" %%block
+%%binding    : "(" IDENTIFIER %%block ")"
+%%let-cc      : "let/cc" IDENTIFIER %%block
+%%require    : "require" (IDENTIFIER | STRING)+
+%%provide    : "provide" (IDENTIFIER | STRING)+
+%%block      : "[" %%expression* "]"
+%%word       : IDENTIFIER
+%%datum      : STRING | NUMBER | TRUE | FALSE | "'" %%sexp
+%%sexp       : "'" %%sexp | STRING | NUMBER | IDENTIFIER | "(" %%sexp* ")"

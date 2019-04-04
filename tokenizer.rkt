@@ -7,19 +7,17 @@
   (define qkstack-lexer
     (lexer-src-pos
      [whitespace (token lexeme #:skip? #t)]
-     ["if{" (token 'IF-BEGIN lexeme)]
-     ["}else{" (token 'IF-ELSE lexeme)]
-     ["{" (token 'BEGIN lexeme)]
-     ["}" (token 'END lexeme)]
-     [":" (token 'DEFINE-BEGIN lexeme)]
+     [(:or "(" ")" "'" "[" "]") (token lexeme lexeme)]
+     [(:or "if" "define" "let" "let/cc" "require" "provide")
+      (token lexeme lexeme)]
      [(:+ (char-set "0123456789"))
       (token 'NUMBER (string->number lexeme))]
      [(:+ (:~ (char-set " \n@()[]{}\",'`;#|\\")))
       (token 'IDENTIFIER (string->symbol lexeme))]
-     ["(" (token 'LEFT-PARENCE lexeme)]
-     [")" (token 'RIGHT-PARENCE lexeme)]
      [(from/to "\"" "\"")
       (token 'STRING (trim-ends "\"" lexeme "\""))]
+     ["#t" (token 'TRUE #t)]
+     ["#f" (token 'FALSE #f)]
      [(eof) (void)]))
   (thunk (qkstack-lexer in)))
 (provide make-tokenizer)
