@@ -7,8 +7,12 @@
   (define qkstack-lexer
     (lexer-src-pos
      [whitespace (token lexeme #:skip? #t)]
-     [(:or "(" ")" "'" "[" "]") (token lexeme lexeme)]
-     [(:or "if" "define" "let" "let/cc" "require" "provide")
+     [(:or "(" ")" "'" ",") (token lexeme lexeme)]
+     ["[" (token "(" "(")]
+     ["]" (token ")" ")")]
+     [(:or "if" "then" "else"
+           "define" "let" "let/cc"
+           "require" "provide")
       (token lexeme lexeme)]
      [(:+ (char-set "0123456789"))
       (token 'NUMBER (string->number lexeme))]

@@ -7,155 +7,126 @@
    tree))
 (provide (rename-out [qkstack-module-begin #%module-begin]))
 
-(define current-operator-stack (make-parameter (make-stack)))
-
 (begin-for-syntax
-  (define (require? expr)
-    (eq? '%%require (car (syntax->datum expr)))
-    (syntax-case expr (%%expression %%form %%require)
-      [(%%expression (%%form "(" (%%require _ ...) ")")) #t]
-      [_ #f]))
-  (define (define? expr)
-    (syntax-case expr (%%expression %%form %%define)
-      [(%%expression (%%form "(" (%%define _ ...) ")")) #t]
+  (define (top-level-form? stx)
+    (syntax-case stx (%%top-level-form)
+      [(%%top-level-form _) #t]
       [_ #f]))
 
-  (define (provide? expr)
-    (syntax-case expr (%%expression %%form %%provide)
-      [(%%expression (%%form "(" (%%provide _ ...) ")")) #t]
-      [_ #f]))
+  (define (expression? stx)
+    (not (top-level-form? stx)))
 
-  (define (init-expressions stx)
-    (let ([exprs (syntax->list stx)])
-      (append (filter require? exprs)
-              (filter define? exprs)
-              (filter provide? exprs))))
-
-  (define (apply-expressions stx stack)
-    (let ([exprs
-           (filter (lambda (expr)
-                     (not (or (require? expr)
-                              (define? expr)
-                              (provide? expr))))
-                   (syntax->list stx))])
-      (for/fold ([acc stack])
-                ([expr exprs])
-        #`(#,expr #,acc)))))
+  (define (qkstack->racket stx stack)
+    (for/fold ([acc stack])
+              ([expr (filter expression? (syntax->list stx))])
+      #`(#,expr #,acc))))
 
 (define-syntax (%%qkstack stx)
   (syntax-case stx ()
     [(_ expression ...)
      #`(begin
-         #,@(init-expressions #'(expression ...))
-         #,(apply-expressions #'(expression ...) #'(make-stack)))]))
+         #,@(filter top-level-form? (syntax->list stx))
+         #,(qkstack->racket #'(expression ...) #'(make-stack)))]))
 (provide %%qkstack)
 
-(define-syntax (%%block stx)
+(define-syntax (block stx)
   (syntax-case stx ()
-    [(_ "[" expression ... "]")
+    [(_ expression ...)
      #`(lambda (stack)
-         #,@(init-expressions #'(expression ...))
-         #,(apply-expressions #'(expression ...) #'stack))]))
-(provide %%block)
+         #,(qkstack->racket #'(expression ...) #'stack))]))
 
 (define-syntax-rule (%%expression expression)
   expression)
 (provide %%expression)
 
-(define-syntax-rule (%%form "(" form ")")
-  form)
-(provide %%form)
-
 (define-syntax %%if
-  (syntax-rules ()
-    [(_ "if" block)
+  (syntax-rules (%%then %%else)
+    [(_ "("
+        "if"
+        (%%then "(" "then" then-expr ... ")")
+        (%%else "(" "else" else-expr ... ")")
+        ")")
      (lambda (stack)
        (if (pop! stack)
-           (block stack)
-           stack))]
-    [(_ "if" then-block else-block)
+           ((block then-expr ...) stack)
+           ((block else-expr ...) stack)))]
+    [(_ "(" "if" (%%then "(" "then" then-expr ... ")") ")")
      (lambda (stack)
        (if (pop! stack)
-           (then-block stack)
-           (else-block stack)))]))
+           ((block then-expr ...) stack)
+           stack))]))
 (provide %%if)
 
-(define-syntax-rule (%%define "define" name block)
-  (define name block))
+(define-syntax-rule (%%define "(" "define" name expression ... ")")
+  (define name (block expression ...)))
 (provide %%define)
 
+(define (datum->word dat)
+  (lambda (stack) (push! stack dat) stack))
+
+(define (word-or-datum->word x)
+  (if (procedure? x)
+      x
+      (datum->word x)))
+
 (define-syntax (%%let stx)
-  (syntax-case stx (%%biding)
-    [(_ "let" "(" (%%binding _ arg val _) ... ")" block)
+  (syntax-case stx (%%bindings)
+    [(_ "(" "let" (%%bindings "(" arg ... ")" ) expression ... ")")
      #`(lambda (stack)
-         (let ([arg val] ...)
-           (block stack)))]))
+         (let* #,(reverse (syntax->list #'([arg (word-or-datum->word (pop! stack))] ...)))
+           ((block expression ...) stack)))]))
 (provide %%let)
 
 (define-syntax (%%named-let stx)
-  (syntax-case stx (%%binding)
-    [(_ "let" name "(" (%%binding _ arg val _) ... ")" block)
+  (syntax-case stx (%%bindings)
+    [(_ "(" "let" name (%%bindings "(" arg ... ")") expression ... ")")
      #`(lambda (stack)
          (define (name stack)
-           (let ([arg val] ...)
-             (block stack)))
+           (let* #,(reverse (syntax->list #'([arg (word-or-datum->word (pop! stack))] ...)))
+             ((block expression ...) stack)))
          (name stack))]))
 (provide %%named-let)
 
-(define-syntax-rule (%%let-cc "let/cc" name block)
+(define-syntax-rule (%%let-cc "(" "let/cc" name expression ... ")")
   (lambda (stack)
     (let/cc k
       (define (name stack2)
         (push! stack (pop! stack2))
         (k stack))
-      (block stack))))
+      ((block expression ...) stack))))
 (provide %%let-cc)
 
-(begin-for-syntax
-  (define (strip-%%sexp sexp)
-    (cond
-      [(and (pair? sexp)
-            (eq? '%%sexp (car sexp)))
-       (strip-%%sexp (cadr sexp))]
-      [else sexp])))
+(define-syntax-rule (%%top-level-form top-level-from)
+  top-level-from)
+(provide %%top-level-form)
 
-(define-syntax (%%require stx)
-  (syntax-case stx ()
-    ([k "require" sexp ...]
-     #`(require #,@(datum->syntax
-                    #'k
-                    (map strip-%%sexp
-                         (syntax->datum #'(sexp ...))))))))
+(define-syntax-rule (%%require "(" "require" id-or-string ... ")")
+  (require id-or-string ...))
 (provide %%require)
 
-(define-syntax (%%provide stx)
-  (syntax-case stx ()
-    ([k "provide" sexp ...]
-     #`(provide #,@(datum->syntax
-                    #'k
-                    (map strip-%%sexp
-                         (syntax->datum #'(sexp ...))))))))
+(define-syntax-rule (%%provide "(" "provide" id-or-string ... ")")
+  (provide id-or-string ...))
 (provide %%provide)
 
 (define-syntax %%datum
   (syntax-rules ()
     [(_ datum)
-     (lambda (stack)
-       (push! stack datum)
-       stack)]
+     (lambda (stack) (push! stack datum) stack)]
     [(_ "'" sexp)
      (%%datum sexp)]))
 (provide %%datum)
 
-(define-syntax-rule (%%word name)
-  name)
+(define-syntax-rule (%%word word) word)
 (provide %%word)
 
 (define-syntax %%sexp
   (syntax-rules ()
-    [(_ sexp) 'sexp]
-    [(_ "'" sexp)
-     `(quote ,sexp)]
-    [(_ "(" sexp ... ")")
-     `(,sexp ...)]))
+    [(_ datum) 'datum]
+    [(_ "(" sexp ... ")") `(,sexp ...)]))
 (provide %%sexp)
+
+(define-syntax-rule (%%quote "," expression)
+  (lambda (stack)
+    (push! stack expression)
+    stack))
+(provide %%quote)
