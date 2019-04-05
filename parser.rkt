@@ -15,7 +15,6 @@
 %%named-let      : "(" "let" IDENTIFIER %%bindings %%expression* ")"
 %%bindings       : "(" IDENTIFIER* ")"
 %%let-cc         : "(" "let/cc" IDENTIFIER %%expression* ")"
-%%quote          : "," %%expression
+%%quote          : "'" %%expression
 %%word           : IDENTIFIER
-%%datum          : STRING | NUMBER | TRUE | FALSE | "'" %%sexp
-%%sexp           : STRING | NUMBER | IDENTIFIER | "(" %%sexp* ")"
+%%datum          : STRING | NUMBER | TRUE | FALSE
