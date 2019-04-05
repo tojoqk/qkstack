@@ -18,18 +18,24 @@
 
   (define (qkstack->racket stx stack)
     (for/fold ([acc stack])
-              ([expr (filter operator? (syntax->list stx))])
-      #`(#,expr #,acc))))
+              ([op (filter operator? (syntax->list stx))])
+      #`(#,op #,acc))))
 
 (define-syntax (%%qkstack stx)
   (syntax-case stx ()
-    [(_ operator ...)
-     #`(begin
-         #,@(filter top-level-form? (syntax->list stx))
-         (module+ main
-           (current-print (lambda (_) (void)))
-           #,(qkstack->racket #'(operator ...)
-                              #'(make-stack))))]))
+    [(_ form ...)
+     (with-syntax ([(top-level-form ...)
+                    (filter top-level-form?
+                            (syntax->list #'(form ...)))]
+                   [(operator ...)
+                    (filter operator?
+                            (syntax->list #'(form ...)))])
+       #`(begin
+           top-level-form ...
+           (module+ main
+             (current-print (lambda (_) (void)))
+             #,(qkstack->racket #'(operator ...)
+                                #'(make-stack)))))]))
 (provide %%qkstack)
 
 (define-syntax (block stx)
@@ -49,11 +55,11 @@
        (if (pop! stack)
            (operator stack)
            stack))]
-    [(_ "(" "if" then-expr else-expr ")")
+    [(_ "(" "if" then-op else-op ")")
      (lambda (stack)
        (if (pop! stack)
-           (then-expr stack)
-           (else-expr stack)))]))
+           (then-op stack)
+           (else-op stack)))]))
 (provide %%if)
 
 (define-syntax-rule (%%define "(" "define" name operator ... ")")
@@ -71,8 +77,7 @@
 (define-syntax (%%begin stx)
   (syntax-case stx (%%bindings)
     [(_ "(" "begin" operator ... ")")
-     #`(lambda (stack)
-         ((block operator ...) stack))]))
+     #`(block operator ...)]))
 (provide %%begin)
 
 (define-syntax (%%let stx)
