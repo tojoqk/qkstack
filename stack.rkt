@@ -21,7 +21,7 @@
 (provide push!)
 
 (define (clear! stack)
-  (set-stack-data! '()))
+  (set-stack-data! stack '()))
 (provide clear!)
 
 (define (dump stack)
