@@ -2,6 +2,7 @@
 (require "stack.rkt")
 (require "util.rkt")
 
+;; stack processing
 (define/qkstack (dup a -> 2) (values a a))
 (provide dup)
 
@@ -26,7 +27,37 @@
 (define/qkstack (tuck a b -> 3) (values b a b))
 (provide tuck)
 
-(provide/qkstack [+ (2 -> 1)]
+(define (%dump stack)
+  (push! stack (dump stack))
+  stack)
+(provide (rename-out [%dump dump]))
+
+(define (load stack)
+  (load! stack (pop! stack))
+  stack)
+(provide load)
+
+(define (clear stack)
+  (clear! stack)
+  stack)
+(provide clear)
+
+(define (empty? stack)
+  (push! stack (stack-empty? stack))
+  stack)
+(provide empty?)
+
+(provide/qkstack [cons (2 -> 1)]
+                 [car (1 -> 1)]
+                 [cdr (1 -> 1)]
+                 [null? (1 -> 1)]
+                 [pair? (1 -> 1)])
+
+;; arithmetic
+(provide/qkstack [zero? (1 -> 1)]
+                 [sub1 (1 -> 1)]
+                 [add1 (1 -> 1)]
+                 [+ (2 -> 1)]
                  [- (2 -> 1)]
                  [* (2 -> 1)]
                  [/ (2 -> 1)]
@@ -36,18 +67,16 @@
                  [< (2 -> 1)]
                  [> (2 -> 1)]
                  [<= (2 -> 1)]
-                 [>= (2 -> 1)]
-                 [zero? (1 -> 1)]
-                 [sub1 (1 -> 1)]
-                 [add1 (1 -> 1)]
-                 [display (1 -> 1)]
-                 [displayln (1 -> 1)]
-                 [write (1 -> 1)]
-                 [car (1 -> 1)]
-                 [cdr (1 -> 1)]
-                 [cons (2 -> 1)]
-                 [null? (1 -> 1)]
-                 [not (1 -> 1)]
-                 [equal? (2 -> 1)]
-                 [eq? (2 -> 1)]
-                 [eqv? (2 -> 1)])
+                 [>= (2 -> 1)])
+
+;; I/O
+(provide/qkstack [read-line (0 -> 1)]
+                 [display (1 -> 0)]
+                 [displayln (1 -> 0)]
+                 [write (1 -> 0)]
+                 [not (1 -> 1)])
+
+;; equality
+(provide/qkstack [eq? (2 -> 1)]
+                 [eqv? (2 -> 1)]
+                 [equal? (2 -> 1)])

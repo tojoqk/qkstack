@@ -4,15 +4,17 @@
 
 (define-syntax (define/qkstack stx)
   (syntax-case stx (->)
+    [(_ (name arg ... -> 0) body body* ...)
+     #`(define (name stack)
+         (let* #,(reverse (syntax->list #'([arg (pop! stack)] ...)))
+           body body* ...)
+         stack)]
     [(_ (name arg ... -> n) body body* ...)
      (with-syntax ([(value ...)
-                    (generate-temporaries
-                     (make-list (syntax->datum #'n) #t))]
-                   [(reversed-arg ...) (reverse (syntax->list #'(arg ...)))])
-       #'(define (name stack)
+                    (generate-temporaries (make-list (syntax->datum #'n) #t))])
+       #`(define (name stack)
            (define-values (value ...)
-             (let* ([reversed-arg (pop! stack)]
-                    ...)
+             (let* #,(reverse (syntax->list #'([arg (pop! stack)] ...)))
                body body* ...))
            (push! stack value) ...
            stack))]
@@ -23,8 +25,7 @@
 (define-syntax (provide/qkstack-1 stx)
   (syntax-case stx (->)
     [(_ name (m -> n))
-     (with-syntax ([(gname) (generate-temporaries #'(name))]
-                   [(arg ...) (generate-temporaries (make-list (syntax->datum #'m) #t))])
+     (with-syntax ([(arg ...) (generate-temporaries (make-list (syntax->datum #'m) #t))])
        #'(begin
            (define/qkstack (gname arg ... -> n)
              (name arg ...))

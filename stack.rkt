@@ -1,29 +1,38 @@
 #lang racket
-(require (only-in srfi/1 append-reverse))
 
-(define (make-stack) '())
+(struct stack ([data #:mutable]))
+
+(define (make-stack) (stack '()))
 (provide make-stack)
 
-(define (stack-empty? s) (null? s))
+(define (stack-empty? s)
+  (null? (stack-data s)))
 (provide stack-empty?)
 
-(define-syntax-rule (pop! stack)
-  (begin0 (car stack)
-    (set! stack (cdr stack))))
+(define (pop! stack)
+  (let ([data (stack-data stack)])
+    (set-stack-data! stack (cdr data))
+    (car data)))
 (provide pop!)
 
-(define-syntax-rule (push! stack value)
-  (set! stack (cons value stack)))
+(define (push! stack value)
+  (set-stack-data! stack
+                   (cons value (stack-data stack))))
 (provide push!)
 
-(define-syntax-rule (push-list! stack lst)
-  (set! stack (append-reverse lst stack)))
-(provide push-list!)
+(define (clear! stack)
+  (set-stack-data! stack '()))
+(provide clear!)
 
-(define (list->stack lst)
-  (reverse lst))
-(provide list->stack)
+(define (dump stack)
+  (reverse (stack-data stack)))
+(provide dump)
 
-(define (stack->list stack)
-  (reverse stack))
-(provide stack->list)
+(define (load! stack lst)
+  (clear! stack)
+  (let loop ([lst lst])
+    (unless (null? lst)
+      (push! stack (car lst))
+      (loop (cdr lst))))
+  stack)
+(provide load!)

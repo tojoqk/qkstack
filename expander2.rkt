@@ -7,6 +7,18 @@
    tree))
 (provide (rename-out [qkstack-module-begin #%module-begin]))
 
+(define current-operator-stack
+  (make-parameter (make-stack)))
+
+(define (op-push! op)
+  (push! (current-operator-stack) op))
+
+(define (op-pop!)
+  (pop! (current-operator-stack)))
+
+(define (op-empty?)
+  (stack-empty? (current-operator-stack)))
+
 (begin-for-syntax
   (define (top-level-form? stx)
     (syntax-case stx (%%top-level-form)
@@ -14,12 +26,7 @@
       [_ #f]))
 
   (define (operator? stx)
-    (not (top-level-form? stx)))
-
-  (define (qkstack->racket stx stack)
-    (for/fold ([acc stack])
-              ([op (filter operator? (syntax->list stx))])
-      #`(#,op #,acc))))
+    (not (top-level-form? stx))))
 
 (define-syntax (%%qkstack stx)
   (syntax-case stx ()
@@ -28,21 +35,27 @@
                     (filter top-level-form?
                             (syntax->list #'(form ...)))]
                    [(operator ...)
-                    (filter operator?
-                            (syntax->list #'(form ...)))])
+                    (reverse
+                     (filter operator?
+                             (syntax->list #'(form ...))))])
        #`(begin
            top-level-form ...
            (module+ main
              (current-print (lambda (_) (void)))
-             #,(qkstack->racket #'(operator ...)
-                                #'(make-stack)))))]))
+             (op-push! operator) ...
+             (let ([data-stack (make-stack)])
+               (let loop ()
+                 (unless (op-empty?)
+                   ((op-pop!) data-stack)
+                   (loop)))))))]))
 (provide %%qkstack)
 
 (define-syntax (block stx)
   (syntax-case stx ()
     [(_ operator ...)
      #`(lambda (stack)
-         #,(qkstack->racket #'(operator ...) #'stack))]))
+         #,@(reverse
+             (syntax->list #'((op-push! operator) ...))))]))
 
 (define-syntax-rule (%%operator operator)
   operator)
@@ -100,7 +113,10 @@
 
 (define-syntax-rule (%%let-cc "(" "let/cc" name operator ... ")")
   (lambda (stack)
-    (let/cc name
+    (let ([saved (dump (current-operator-stack))])
+      (define (name stack)
+        (load! (current-operator-stack) saved)
+        stack)
       ((block operator ...) stack))))
 (provide %%let-cc)
 
