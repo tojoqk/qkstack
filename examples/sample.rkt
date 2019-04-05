@@ -1,52 +1,80 @@
 #lang qkstack
 (require qkstack/prelude)
 
-"hello"
-displayln
+;; Hello, World!
+"Hello, World!" displayln
 
+(define print
+  display " -> " display displayln)
+
+3 1 2 + 10 * -
+"3 1 2 + 10 * -"
+print
+
+;; Write factorial function
 (define factorial
   dup zero?
-  (if [then drop 1]
-      [else dup sub1 factorial *]))
+  (if (begin drop 1)
+      (begin dup sub1 factorial *)))
+(provide factorial)
+
 10 factorial
+"10 factorial"
+print
 
+;; list processing
 (define append
-  over null? (if [then nip]
-                 [else over cdr swap append swap car swap cons]))
+  over null?
+  (if (begin
+        swap drop)
+      (begin
+        over car rot cdr rot append cons)))
+
 '(a b c) '(1 2 3) append
+"'(a b c) '(1 2 3) append"
+print
 
-10
-(let fact ()
-  dup zero? (if [then drop 1]
-                [else dup sub1 fact *]))
+;; lexical binding
+4 2 (let (a b) a b * a b + -)
+"4 2 (let (a b) a b * a b + -)"
+print
 
-'(1 2 10 3 4 5)
-(let product ()
-  dup null?
-  (if [then drop 1]
-      [else dup car swap cdr product *]))
+;; lexical binding and word quoting
+,+ (let (op) 22 20 op)
+",+ (let (op) 22 20 op)"
+print
 
-(define product1
-  dump displayln
-  dup null?
-  (if [then drop 1]
-      [else dup car swap cdr product1 *]))
+(define seq
+  dup zero?
+  (if drop
+      (begin dup sub1 seq)))
 
-(define product2
-  (let/cc escape
+10 seq dump
+"10 seq dump"
+print
+
+(define dotimes
+  (let loop (n block)
+    n zero? not
+    (if (begin block n sub1 ,block loop))))
+,+ 9 dotimes
+",+ 9 dotimes"
+print
+
+(define product
+  over 'end eq?
+  (if nip
+      (begin * product)))
+'end 1 2 3 4 5 product
+"'end 1 2 10 4 5 product"
+print
+
+(define reduce
+  (let (op mark)
     (let loop ()
-      dump displayln
-      dup null?
-      (if [then drop 1]
-          [else
-           dup car zero? (if [then drop 0 escape])
-           dup car swap cdr loop *])))
-  nip)
-
-'(1 2 0 3 4 5)
-dup
-product1
-swap
-product2
-
-,product2 (let (f) '(10 20 30) f)
+      over mark eq?
+      (if nip
+          (begin op loop)))))
+'end 10 seq ,* 'end reduce
+"'end 10 seq ,* 'end reduce"
+print
