@@ -1,22 +1,22 @@
 #lang brag
 
-%%qkstack        : (%%top-level-form | %%expression)*
+%%qkstack        : (%%top-level-form | %%operator)*
 %%top-level-form : %%define | %%require | %%provide
-%%define         : "(" "define" IDENTIFIER %%expression* ")"
+%%define         : "(" "define" IDENTIFIER %%operator* ")"
 %%require        : "(" "require" (IDENTIFIER | STRING)+ ")"
 %%provide        : "(" "provide" IDENTIFIER+ ")"
-%%expression     : %%if | %%let | %%named-let | %%let-cc | %%begin
+%%operator       : %%if | %%let | %%named-let | %%let-cc | %%begin
                  | %%quote | %%word | %%datum
-%%if             : "(" "if" %%expression %%expression? ")"
-%%then           : "(" "then" %%expression* ")"
-%%else           : "(" "else" %%expression* ")"
-%%when           : "(" "when" %%expression* ")"
-%%let            : "(" "let" %%bindings %%expression* ")"
-%%named-let      : "(" "let" IDENTIFIER %%bindings %%expression* ")"
+%%if             : "(" "if" %%operator %%operator? ")"
+%%then           : "(" "then" %%operator* ")"
+%%else           : "(" "else" %%operator* ")"
+%%when           : "(" "when" %%operator* ")"
+%%let            : "(" "let" %%bindings %%operator* ")"
+%%named-let      : "(" "let" IDENTIFIER %%bindings %%operator* ")"
 %%bindings       : "(" IDENTIFIER* ")"
-%%let-cc         : "(" "let/cc" IDENTIFIER %%expression* ")"
-%%begin          : "(" "begin" %%expression* ")"
-%%quote          : "," %%expression
+%%let-cc         : "(" "let/cc" IDENTIFIER %%operator* ")"
+%%begin          : "(" "begin" %%operator* ")"
+%%quote          : "," %%operator
 %%word           : IDENTIFIER
 %%datum          : STRING | NUMBER | TRUE | FALSE | "'" %%sexp
 %%sexp           : STRING | NUMBER | IDENTIFIER | TRUE | FALSE

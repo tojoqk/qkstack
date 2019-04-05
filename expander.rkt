@@ -13,41 +13,41 @@
       [(%%top-level-form _) #t]
       [_ #f]))
 
-  (define (expression? stx)
+  (define (operator? stx)
     (not (top-level-form? stx)))
 
   (define (qkstack->racket stx stack)
     (for/fold ([acc stack])
-              ([expr (filter expression? (syntax->list stx))])
+              ([expr (filter operator? (syntax->list stx))])
       #`(#,expr #,acc))))
 
 (define-syntax (%%qkstack stx)
   (syntax-case stx ()
-    [(_ expression ...)
+    [(_ operator ...)
      #`(begin
          #,@(filter top-level-form? (syntax->list stx))
          (module+ main
            (current-print (lambda (_) (void)))
-           #,(qkstack->racket #'(expression ...)
+           #,(qkstack->racket #'(operator ...)
                               #'(make-stack))))]))
 (provide %%qkstack)
 
 (define-syntax (block stx)
   (syntax-case stx ()
-    [(_ expression ...)
+    [(_ operator ...)
      #`(lambda (stack)
-         #,(qkstack->racket #'(expression ...) #'stack))]))
+         #,(qkstack->racket #'(operator ...) #'stack))]))
 
-(define-syntax-rule (%%expression expression)
-  expression)
-(provide %%expression)
+(define-syntax-rule (%%operator operator)
+  operator)
+(provide %%operator)
 
 (define-syntax %%if
   (syntax-rules ()
-    [(_ "(" "if" expression ")")
+    [(_ "(" "if" operator ")")
      (lambda (stack)
        (if (pop! stack)
-           (expression stack)
+           (operator stack)
            stack))]
     [(_ "(" "if" then-expr else-expr ")")
      (lambda (stack)
@@ -56,8 +56,8 @@
            (else-expr stack)))]))
 (provide %%if)
 
-(define-syntax-rule (%%define "(" "define" name expression ... ")")
-  (define name (block expression ...)))
+(define-syntax-rule (%%define "(" "define" name operator ... ")")
+  (define name (block operator ...)))
 (provide %%define)
 
 (define (datum->word dat)
@@ -70,36 +70,36 @@
 
 (define-syntax (%%begin stx)
   (syntax-case stx (%%bindings)
-    [(_ "(" "begin" expression ... ")")
+    [(_ "(" "begin" operator ... ")")
      #`(lambda (stack)
-         ((block expression ...) stack))]))
+         ((block operator ...) stack))]))
 (provide %%begin)
 
 (define-syntax (%%let stx)
   (syntax-case stx (%%bindings)
-    [(_ "(" "let" (%%bindings "(" arg ... ")" ) expression ... ")")
+    [(_ "(" "let" (%%bindings "(" arg ... ")" ) operator ... ")")
      #`(lambda (stack)
          (let* #,(reverse (syntax->list #'([arg (word-or-datum->word (pop! stack))] ...)))
-           ((block expression ...) stack)))]))
+           ((block operator ...) stack)))]))
 (provide %%let)
 
 (define-syntax (%%named-let stx)
   (syntax-case stx (%%bindings)
-    [(_ "(" "let" name (%%bindings "(" arg ... ")") expression ... ")")
+    [(_ "(" "let" name (%%bindings "(" arg ... ")") operator ... ")")
      #`(lambda (stack)
          (define (name stack)
            (let* #,(reverse (syntax->list #'([arg (word-or-datum->word (pop! stack))] ...)))
-             ((block expression ...) stack)))
+             ((block operator ...) stack)))
          (name stack))]))
 (provide %%named-let)
 
-(define-syntax-rule (%%let-cc "(" "let/cc" name expression ... ")")
+(define-syntax-rule (%%let-cc "(" "let/cc" name operator ... ")")
   (lambda (stack)
     (let/cc k
       (define (name stack2)
         (push! stack (pop! stack2))
         (k stack))
-      ((block expression ...) stack))))
+      ((block operator ...) stack))))
 (provide %%let-cc)
 
 (define-syntax-rule (%%top-level-form top-level-from)
@@ -132,8 +132,8 @@
 (define-syntax-rule (%%word word) word)
 (provide %%word)
 
-(define-syntax-rule (%%quote "," expression)
+(define-syntax-rule (%%quote "," operator)
   (lambda (stack)
-    (push! stack expression)
+    (push! stack operator)
     stack))
 (provide %%quote)
