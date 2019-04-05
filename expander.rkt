@@ -114,14 +114,25 @@
   (provide id ...))
 (provide %%provide)
 
-(define-syntax-rule (%%datum datum)
-  (lambda (stack) (push! stack datum) stack))
+(define-syntax %%datum
+  (syntax-rules ()
+    [(_ datum)
+     (lambda (stack) (push! stack datum) stack)]
+    [(_ "'" sexp)
+     (%%datum sexp)]))
 (provide %%datum)
+
+(define-syntax %%sexp
+  (syntax-rules ()
+    [(_ datum) 'datum]
+    [(_ "(" sexp ... ")")
+     `(,sexp ...)]))
+(provide %%sexp)
 
 (define-syntax-rule (%%word word) word)
 (provide %%word)
 
-(define-syntax-rule (%%quote "'" expression)
+(define-syntax-rule (%%quote "," expression)
   (lambda (stack)
     (push! stack expression)
     stack))

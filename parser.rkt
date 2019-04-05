@@ -16,6 +16,8 @@
 %%bindings       : "(" IDENTIFIER* ")"
 %%let-cc         : "(" "let/cc" IDENTIFIER %%expression* ")"
 %%begin          : "(" "begin" %%expression* ")"
-%%quote          : "'" %%expression
+%%quote          : "," %%expression
 %%word           : IDENTIFIER
-%%datum          : STRING | NUMBER | TRUE | FALSE
+%%datum          : STRING | NUMBER | TRUE | FALSE | "'" %%sexp
+%%sexp           : STRING | NUMBER | IDENTIFIER | TRUE | FALSE
+                 | "(" %%sexp* ")"

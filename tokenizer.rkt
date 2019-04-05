@@ -8,7 +8,7 @@
     (lexer-src-pos
      [whitespace (token lexeme #:skip? #t)]
      [(from/to ";" "\n") (token 'COMMENT #:skip? #t)]
-     [(:or "(" ")" "'") (token lexeme lexeme)]
+     [(:or "(" ")" "'" ",") (token lexeme lexeme)]
      [(:or "if" "begin"
            "define" "let" "let/cc"
            "require" "provide")
