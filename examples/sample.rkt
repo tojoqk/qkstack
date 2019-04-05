@@ -4,12 +4,12 @@
 ;; Hello, World!
 "Hello, World!" displayln
 
-(define print
+(define ->print
   display " -> " display displayln)
 
 3 1 2 + 10 * -
 "3 1 2 + 10 * -"
-print
+->print
 
 ;; Write factorial function
 (define factorial
@@ -20,7 +20,7 @@ print
 
 10 factorial
 "10 factorial"
-print
+->print
 
 ;; list processing
 (define append
@@ -32,17 +32,17 @@ print
 
 '(a b c) '(1 2 3) append
 "'(a b c) '(1 2 3) append"
-print
+->print
 
 ;; lexical binding
 4 2 (let (a b) a b * a b + -)
 "4 2 (let (a b) a b * a b + -)"
-print
+->print
 
 ;; lexical binding and word quoting
 ,+ (let (op) 22 20 op)
 ",+ (let (op) 22 20 op)"
-print
+->print
 
 (define seq
   dup zero?
@@ -51,23 +51,15 @@ print
 
 10 seq dump
 "10 seq dump"
-print
+->print
 
 (define dotimes
   (let loop (n block)
     n zero? not
     (if (begin block n sub1 ,block loop))))
-,+ 9 dotimes
-",+ 9 dotimes"
-print
-
-(define product
-  over 'end eq?
-  (if nip
-      (begin * product)))
-'end 1 2 3 4 5 product
-"'end 1 2 10 4 5 product"
-print
+9 ,+ dotimes
+"9 ,+ dotimes"
+->print
 
 (define reduce
   (let (op mark)
@@ -77,4 +69,48 @@ print
           (begin op loop)))))
 'end 10 seq ,* 'end reduce
 "'end 10 seq ,* 'end reduce"
-print
+->print
+
+
+'hello!
+dump "dump" ->print
+
+(define product
+  dump "product: dump" ->print
+  dup null?
+  (if (begin drop 1)
+      (begin
+        dup car swap cdr product *)))
+
+'(1 2 3 4 5) product
+"'(1 2 3 4 5) product"
+->print
+
+'(1 2 0 4 5) product
+"'(1 2 0 4 5) product"
+->print
+
+(define product2
+  'stop swap
+  (let/cc return
+    (let prod ()
+      dump "product2: dump" ->print
+      dup null?
+      (if (begin drop 1)
+          (begin
+            dup car
+            dup zero?
+            (if return
+                (begin swap cdr prod *))))))
+  ,nip 'stop reduce)
+
+'(1 2 3 4 5) product2
+"'(1 2 3 4 5) product2"
+->print
+
+
+'(1 2 0 4 5) product2
+"'(1 2 0 4 5) product2"
+->print
+
+dump "dump" ->print
