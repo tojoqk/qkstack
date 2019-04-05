@@ -43,21 +43,17 @@
 (provide %%expression)
 
 (define-syntax %%if
-  (syntax-rules (%%then %%else)
-    [(_ "("
-        "if"
-        (%%then "(" "then" then-expr ... ")")
-        (%%else "(" "else" else-expr ... ")")
-        ")")
+  (syntax-rules ()
+    [(_ "(" "if" expression ")")
      (lambda (stack)
        (if (pop! stack)
-           ((block then-expr ...) stack)
-           ((block else-expr ...) stack)))]
-    [(_ "(" "if" (%%then "(" "then" then-expr ... ")") ")")
+           (expression stack)
+           stack))]
+    [(_ "(" "if" then-expr else-expr ")")
      (lambda (stack)
        (if (pop! stack)
-           ((block then-expr ...) stack)
-           stack))]))
+           (then-expr stack)
+           (else-expr stack)))]))
 (provide %%if)
 
 (define-syntax-rule (%%define "(" "define" name expression ... ")")
@@ -71,6 +67,13 @@
   (if (procedure? x)
       x
       (datum->word x)))
+
+(define-syntax (%%begin stx)
+  (syntax-case stx (%%bindings)
+    [(_ "(" "begin" expression ... ")")
+     #`(lambda (stack)
+         ((block expression ...) stack))]))
+(provide %%begin)
 
 (define-syntax (%%let stx)
   (syntax-case stx (%%bindings)

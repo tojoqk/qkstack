@@ -9,9 +9,7 @@
      [whitespace (token lexeme #:skip? #t)]
      [(from/to ";" "\n") (token 'COMMENT #:skip? #t)]
      [(:or "(" ")" "'") (token lexeme lexeme)]
-     ["[" (token "(" "(")]
-     ["]" (token ")" ")")]
-     [(:or "if" "then" "else"
+     [(:or "if" "begin"
            "define" "let" "let/cc"
            "require" "provide")
       (token lexeme lexeme)]

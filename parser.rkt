@@ -5,9 +5,9 @@
 %%define         : "(" "define" IDENTIFIER %%expression* ")"
 %%require        : "(" "require" (IDENTIFIER | STRING)+ ")"
 %%provide        : "(" "provide" IDENTIFIER+ ")"
-%%expression     : %%if | %%let | %%named-let | %%let-cc
+%%expression     : %%if | %%let | %%named-let | %%let-cc | %%begin
                  | %%quote | %%word | %%datum
-%%if             : "(" "if" %%then %%else? ")"
+%%if             : "(" "if" %%expression %%expression? ")"
 %%then           : "(" "then" %%expression* ")"
 %%else           : "(" "else" %%expression* ")"
 %%when           : "(" "when" %%expression* ")"
@@ -15,6 +15,7 @@
 %%named-let      : "(" "let" IDENTIFIER %%bindings %%expression* ")"
 %%bindings       : "(" IDENTIFIER* ")"
 %%let-cc         : "(" "let/cc" IDENTIFIER %%expression* ")"
+%%begin          : "(" "begin" %%expression* ")"
 %%quote          : "'" %%expression
 %%word           : IDENTIFIER
 %%datum          : STRING | NUMBER | TRUE | FALSE
