@@ -100,10 +100,7 @@
 
 (define-syntax-rule (%%let-cc "(" "let/cc" name operator ... ")")
   (lambda (stack)
-    (let/cc k
-      (define (name stack2)
-        (push! stack (pop! stack2))
-        (k stack))
+    (let/cc name
       ((block operator ...) stack))))
 (provide %%let-cc)
 
