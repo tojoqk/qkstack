@@ -44,6 +44,10 @@
   (require id ...))
 (provide %require)
 
+(define-syntax-rule (%provide "(" "provide" id ... ")")
+  (provide id ...))
+(provide %provide)
+
 (define-syntax-rule (%operator operator)
   operator)
 (provide %operator)

@@ -13,6 +13,7 @@
 
 (define (reserved? id)
   (or (string=? id "require")
+      (string=? id "provide")
       (string=? id "define")
       (string=? id "if")
       (string=? id "begin")
