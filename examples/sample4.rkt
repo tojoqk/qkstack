@@ -7,7 +7,7 @@
 (define mod0? [ a b -> bool ]
   modulo zero?)
 
-(define fizzbuzz [a b ->]
+(define fizzbuzz [ a b -> ]
   dup2 = not
   (if (begin
         (let/cc continue
