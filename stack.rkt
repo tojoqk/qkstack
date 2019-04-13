@@ -89,4 +89,4 @@
 
   (push-list! s '(x y z))
 
-  (check-equal? (dump s) '(z y x a b c)))
+  (check-equal? (dump s) '(a b c x y z)))
