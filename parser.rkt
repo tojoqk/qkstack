@@ -1,23 +1,13 @@
 #lang brag
 
-%%qkstack        : (%%top-level-form | %%operator)*
-%%top-level-form : %%define | %%require | %%provide
-%%define         : "(" "define" IDENTIFIER %%operator* ")"
-%%require        : "(" "require" (IDENTIFIER | STRING)+ ")"
-%%provide        : "(" "provide" IDENTIFIER+ ")"
-%%operator       : %%if | %%let | %%named-let | %%let-cc | %%begin
-                 | %%quote | %%word | %%datum
-%%if             : "(" "if" %%operator %%operator? ")"
-%%then           : "(" "then" %%operator* ")"
-%%else           : "(" "else" %%operator* ")"
-%%when           : "(" "when" %%operator* ")"
-%%let            : "(" "let" %%bindings %%operator* ")"
-%%named-let      : "(" "let" IDENTIFIER %%bindings %%operator* ")"
-%%bindings       : "(" IDENTIFIER* ")"
-%%let-cc         : "(" "let/cc" IDENTIFIER %%operator* ")"
-%%begin          : "(" "begin" %%operator* ")"
-%%quote          : "," %%operator
-%%word           : IDENTIFIER
-%%datum          : STRING | NUMBER | TRUE | FALSE | "'" %%sexp
-%%sexp           : STRING | NUMBER | IDENTIFIER | TRUE | FALSE
-                 | "(" %%sexp* ")"
+%qkstack  : (%operator | %form)*
+%operator : %datum | %word | %if | %begin | %let-cc
+%word     : ID
+%datum    : NUMBER | TRUE | FALSE | STRING
+%if       : LP "if" %operator %operator? RP
+%begin    : LP "begin" %operator* RP
+%let-cc   : LP "let/cc" ID %operator* RP
+%form     : %require | %define
+%require  : LP "require" ID+ RP
+%define   : LP "define" ID %comment? %operator+ RP
+%comment  : LB (ID | %datum | RP | LP)* RB

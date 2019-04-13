@@ -1,5 +1,5 @@
 qkstack
-Copyright (c) 2019 tojoqk
+Copyright (c) 2019 Masaya Tojo
 
 This package is distributed under the GNU Lesser General Public
 License (LGPL).  This means that you can link qkstack into proprietary
