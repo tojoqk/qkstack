@@ -2,11 +2,14 @@
 (require syntax/strip-context
          "parser.rkt" "tokenizer.rkt")
 
-(module+ reader
-  (provide read-syntax))
 
 (define (read-syntax path port)
-  (define syntax-tree (parse path (make-tokenizer port path)))
+  (define stx
+    (parameterize ([lexer-file-path path])
+      (parse path (make-tokenizer port))))
   (strip-context
-   #`(module sexp-drill-mod qkstack/expander
-       #,syntax-tree)))
+   #`(module qkstack-mod qkstack/expander
+       #,stx)))
+
+(module+ reader
+  (provide read-syntax))
