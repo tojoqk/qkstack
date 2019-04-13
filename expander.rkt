@@ -30,10 +30,14 @@
                              #'(op-or-form ...)))])
        #`(begin
            form ...
-           (module+ main
-             (let ([stack (make-stack)])
-               (operator stack)
-               ...))))]))
+           #,@(cond
+                [(null? (syntax->list #'(operator ...)))
+                 #'()]
+                [else
+                 #'((module+ main
+                      (let ([stack (make-stack)])
+                        (operator stack)
+                        ...)))])))]))
 (provide %qkstack)
 
 (define-syntax-rule (%form form)
