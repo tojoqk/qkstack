@@ -47,36 +47,37 @@
   stack)
 (provide empty?)
 
-(provide/qkstack [cons (2 -> 1)]
-                 [car (1 -> 1)]
-                 [cdr (1 -> 1)]
-                 [null? (1 -> 1)]
-                 [pair? (1 -> 1)])
+;; list processing
+(provide/qkstack [cons 2 -> 1]
+                 [car 1 -> 1]
+                 [cdr 1 -> 1]
+                 [null? 1 -> 1]
+                 [pair? 1 -> 1])
 
 ;; arithmetic
-(provide/qkstack [zero? (1 -> 1)]
-                 [sub1 (1 -> 1)]
-                 [add1 (1 -> 1)]
-                 [+ (2 -> 1)]
-                 [- (2 -> 1)]
-                 [* (2 -> 1)]
-                 [/ (2 -> 1)]
-                 [modulo (2 -> 1)]
-                 [quotient (2 -> 1)]
-                 [= (2 -> 1)]
-                 [< (2 -> 1)]
-                 [> (2 -> 1)]
-                 [<= (2 -> 1)]
-                 [>= (2 -> 1)])
+(provide/qkstack [zero? 1 -> 1]
+                 [sub1 1 -> 1]
+                 [add1 1 -> 1]
+                 [+ 2 -> 1]
+                 [- 2 -> 1]
+                 [* 2 -> 1]
+                 [/ 2 -> 1]
+                 [modulo 2 -> 1]
+                 [quotient 2 -> 1]
+                 [= 2 -> 1]
+                 [< 2 -> 1]
+                 [> 2 -> 1]
+                 [<= 2 -> 1]
+                 [>= 2 -> 1])
 
 ;; I/O
-(provide/qkstack [read-line (0 -> 1)]
-                 [display (1 -> 0)]
-                 [displayln (1 -> 0)]
-                 [write (1 -> 0)]
-                 [not (1 -> 1)])
+(provide/qkstack [read-line 0 -> 1]
+                 [display 1 -> 0]
+                 [displayln 1 -> 0]
+                 [write 1 -> 0]
+                 [not 1 -> 1])
 
 ;; equality
-(provide/qkstack [eq? (2 -> 1)]
-                 [eqv? (2 -> 1)]
-                 [equal? (2 -> 1)])
+(provide/qkstack [eq? 2 -> 1]
+                 [eqv? 2 -> 1]
+                 [equal? 2 -> 1])
